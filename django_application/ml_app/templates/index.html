@@ -1,52 +1,116 @@
 {% extends 'base.html' %}
 {%load static%}
 {%block content%}
-<div class="bg" >
-<div class="container">
-    
-    <div class="row align-items-center justify-content-center">
-        <div class="col-12 my-auto">
-            <div class="logo text-center mb-3"><img src="{% static 'images/logo1.png'%}" alt="Logo" ></div>
-            <div class="width-400">
-                <video width="100%" controls id="videos">
-                    <source src="" id="video_source">
-                    Your browser does not support HTML5 video.
-                </video>
-                <form class="form" method="POST" enctype="multipart/form-data" name="video-upload" id="video-upload"
-                    class="text-center mt-3">
-                    {%csrf_token%}
-                    <div class="form-group">
-                        <label>{{form.upload_video_file.widget}}</label>
-                        {{form.upload_video_file}}
-                        <!-- <input type="file" id="{{form.upload_video_file.id_for_label}}" name="{{form.upload_video_file.name}}" /> -->
-                        {%if form.upload_video_file.errors%}
-                        {%for each_error in form.upload_video_file.errors%}
-                        <div class="alert alert-danger mt-1 {{form.upload_video_file.id_for_label}}">
-                            {{each_error}}
-                        </div>
-                        {%endfor%}
-                        {%endif%}
+<div class="bg">
+    <div class="container">
+        <div class="row align-items-center justify-content-center">
+            <div class="col-12 my-auto">
+                <!-- Modern Header -->
+                <div class="text-center mb-4">
+                    <div class="logo mb-3">
+                        <img src="{% static 'images/logo1.png'%}" alt="Logo" class="logo-img">
                     </div>
-                    <div class="form-group">
-                        <label for="{{form.sequence_length.id_for_label}}">{{form.sequence_length.label}}: </label><span
-                            id="slider-value"></span>
-                        <input type="number" hidden="hidden" id="{{form.sequence_length.id_for_label}}"
-                            name="{{form.sequence_length.name}}"></input>
-                        <div id='slider'></div>
-                        {%if form.sequence_length.errors%}
-                        {%for each_error in form.sequence_length.errors%}
-                        <div class="alert alert-danger mt-1 {{form.sequence_length.id_for_label}}">
-                            {{each_error}}
+                    <h1 class="main-title">DeepShield</h1>
+                    <p class="subtitle">Upload a video to analyze for deepfake content</p>
+                </div>
+
+                <!-- Main Upload Card -->
+                <div class="upload-card">
+                    <!-- Video Player Section -->
+                    <div class="video-section">
+                        <video width="100%" controls id="videos" class="video-player">
+                            <source src="" id="video_source">
+                            Your browser does not support HTML5 video.
+                        </video>
+                        <div id="video-thumbnail" class="video-thumbnail" style="display: none;">
+                            <img id="thumbnail-img" src="" alt="Video thumbnail">
                         </div>
-                        {%endfor%}
-                        {%endif%}
                     </div>
-                    <button id="videoUpload" type="submit" name="submit" class="btn btn-success mt-3 btn-block">Upload</button>
-                </form>
+
+                    <!-- Upload Form -->
+                    <form class="upload-form" method="POST" enctype="multipart/form-data" name="video-upload" id="video-upload">
+                        {%csrf_token%}
+                        
+                        <!-- File Upload Section -->
+                        <div class="form-section">
+                            <label class="section-label">Upload Video</label>
+                            <div class="file-upload-area" id="file-upload-area">
+                                <div class="file-upload-content">
+                                    <div class="upload-icon">📁</div>
+                                    <div class="upload-text">
+                                        <span class="upload-primary">Click to choose a file</span>
+                                        <span class="upload-secondary">or drag and drop your video here</span>
+                                    </div>
+                                    <div class="file-info" id="file-info" style="display: none;">
+                                        <span class="file-name" id="file-name"></span>
+                                        <button type="button" class="file-remove" id="file-remove">×</button>
+                                    </div>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    {{form.upload_video_file}}
+                                </div>
+                                {%if form.upload_video_file.errors%}
+                                {%for each_error in form.upload_video_file.errors%}
+                                <div class="alert alert-danger mt-2 {{form.upload_video_file.id_for_label}}">
+                                    {{each_error}}
+                                </div>
+                                {%endfor%}
+                                {%endif%}
+                            </div>
+                        </div>
+
+                        <!-- Sequence Length Section -->
+                        <div class="form-section">
+                            <label class="section-label">Sequence Length</label>
+                            <div class="slider-container">
+                                <div class="slider-wrapper">
+                                    <div id='slider'></div>
+                                    <div class="slider-value-display">
+                                        <span class="slider-label">Frames:</span>
+                                        <span id="slider-value" class="slider-value">10</span>
+                                    </div>
+                                </div>
+                                <input type="number" hidden="hidden" id="{{form.sequence_length.id_for_label}}" name="{{form.sequence_length.name}}">
+                                {%if form.sequence_length.errors%}
+                                {%for each_error in form.sequence_length.errors%}
+                                <div class="alert alert-danger mt-2 {{form.sequence_length.id_for_label}}">
+                                    {{each_error}}
+                                </div>
+                                {%endfor%}
+                                {%endif%}
+                            </div>
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div class="progress-section" id="progress-section" style="display: none;">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="progress-bar"></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">Uploading...</div>
+                        </div>
+
+                        <!-- Upload Button -->
+                        <button id="videoUpload" type="submit" name="submit" class="upload-button">
+                            <span class="button-text">Upload Video</span>
+                            <span class="button-icon">🚀</span>
+                        </button>
+                    </form>
+
+                    <!-- Detection Result Section -->
+                    <div class="result-section" id="detection-result" style="display: none;">
+                        <div class="result-card" id="result-card">
+                            <div class="result-icon" id="result-icon"></div>
+                            <div class="result-content">
+                                <div class="result-label" id="result-label"></div>
+                                <div class="result-confidence" id="result-confidence"></div>
+                                <div class="result-explanation" id="result-explanation"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 {%endblock%}
 {%block js_cripts%}
@@ -67,5 +131,155 @@
         $("#{{form.sequence_length.id_for_label}}").val(sliderSequenceNumbers[$("#slider").slider("value")]);
         $('#slider-value').html(sliderSequenceNumbers[$("#slider").slider("value")]);
     });
+</script>
+
+<!-- Modern UI Enhancement Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
+    const fileInput = document.getElementById('{{form.upload_video_file.id_for_label}}');
+    const fileUploadArea = document.getElementById('file-upload-area');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileRemove = document.getElementById('file-remove');
+    const videoPlayer = document.getElementById('videos');
+    const videoThumbnail = document.getElementById('video-thumbnail');
+    const thumbnailImg = document.getElementById('thumbnail-img');
+    const progressSection = document.getElementById('progress-section');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const uploadButton = document.getElementById('videoUpload');
+    const detectionResult = document.getElementById('detection-result');
+    const resultCard = document.getElementById('result-card');
+    const resultIcon = document.getElementById('result-icon');
+    const resultLabel = document.getElementById('result-label');
+    const resultConfidence = document.getElementById('result-confidence');
+    const resultExplanation = document.getElementById('result-explanation');
+
+    // Drag and drop functionality
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.add('drag-over');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('drag-over');
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelection(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    // Make the upload area clickable
+    fileUploadArea.addEventListener('click', function(e) {
+        // Only trigger if not clicking on file info or remove button
+        if (!fileInfo.contains(e.target)) {
+            fileInput.click();
+        }
+    });
+
+    // File selection handler
+    function handleFileSelection(file) {
+        fileName.textContent = file.name;
+        fileInfo.style.display = 'flex';
+        fileUploadArea.classList.add('has-file');
+        
+        // Create video preview
+        const videoURL = URL.createObjectURL(file);
+        const videoSource = document.getElementById('video_source');
+        videoSource.src = videoURL;
+        videoPlayer.load();
+        videoPlayer.style.display = 'block';
+        
+        // Create thumbnail
+        videoPlayer.addEventListener('loadedmetadata', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = videoPlayer.videoWidth;
+            canvas.height = videoPlayer.videoHeight;
+            ctx.drawImage(videoPlayer, 0, 0);
+            thumbnailImg.src = canvas.toDataURL();
+            videoThumbnail.style.display = 'block';
+        });
+    }
+
+    // File remove handler
+    fileRemove.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        fileUploadArea.classList.remove('has-file');
+        videoPlayer.style.display = 'none';
+        videoThumbnail.style.display = 'none';
+        detectionResult.style.display = 'none';
+    });
+
+    // Form submission with progress
+    document.getElementById('video-upload').addEventListener('submit', function(e) {
+        progressSection.style.display = 'block';
+        uploadButton.disabled = true;
+        uploadButton.classList.add('uploading');
+        
+        // Animate progress bar
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+        }, 200);
+        
+        // Store interval to clear later
+        this.progressInterval = progressInterval;
+    });
+
+    // Detection result handler
+    function onDetectionResult(response) {
+        progressSection.style.display = 'none';
+        uploadButton.disabled = false;
+        uploadButton.classList.remove('uploading');
+        
+        // Clear progress interval if exists
+        const form = document.getElementById('video-upload');
+        if (form.progressInterval) {
+            clearInterval(form.progressInterval);
+        }
+        
+        // Show result
+        detectionResult.style.display = 'block';
+        
+        const isReal = response && (response.result === 'REAL' || response.output === 'REAL');
+        const confidence = response.confidence || 'N/A';
+        
+        resultCard.className = 'result-card ' + (isReal ? 'real' : 'fake');
+        resultIcon.textContent = isReal ? '✅' : '❌';
+        resultLabel.textContent = isReal ? 'Real Video' : 'Deepfake Detected';
+        resultConfidence.textContent = `Confidence: ${confidence}%`;
+        resultExplanation.textContent = isReal 
+            ? 'This video appears to be authentic.' 
+            : 'This video shows signs of being artificially generated.';
+    }
+
+    // Expose function globally for backend integration
+    window.onDetectionResult = onDetectionResult;
+    
+    // Also listen for custom events
+    document.addEventListener('ui:detection', function(e) {
+        onDetectionResult(e.detail);
+    });
+});
 </script>
 {%endblock%}
